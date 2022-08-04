@@ -29,7 +29,6 @@ jobs:
     - name: Build
       working-directory: edk2
       run: "source edksetup.sh && build -b RELEASE -t GCC5 -p SmokelessRuntimeEFIPatcher/SmokelessRuntimeEFIPatcher.dsc -a X64 -s"
-    - name: Upload a Build Artifact
     - uses: actions/upload-artifact@v3.1.0
       with:
         name: "SREP"
