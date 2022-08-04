@@ -92,7 +92,8 @@ This is an Example of Loading a simple EFI, replacing by pattern,and executing i
 Find and replace AABBCCDDEEFF with AABBCCDDEEEE,
 find and replace AABBCCDDAABB with AABBCCDDAAAA:
 
-    Op LoadFromFS APP.efi
+    Op LoadFromFS
+    APP.efi
     Op Patch
     Pattern
     AABBCCDDEEFF
@@ -108,7 +109,8 @@ This is an Example of using relative pattern
 
 Find the pattern AABBCCDDEEFF (replace with AABBCCDDEEFF, as we want it's own start address), then write AABBCCDDAAAA, at +50 from the pattern start
 
-    Op LoadFromFS APP.efi
+    Op LoadFromFS
+    APP.efi
     Op Patch
     Pattern
     AABBCCDDEEFF
@@ -159,7 +161,7 @@ Let's say that we want to show the CBS Menu , it's guid is {B04535E3-3004-4946-9
 
  as we appended the 4 byte uint32_t of value 0;
 
- we want to replace thsi with the 1, the little endian version of a uint32_t is
+ we want to replace this with the 1, the little endian version of a uint32_t is
  
     01 00 00 00
 
@@ -171,7 +173,8 @@ so the replace string is
 So putting all toghether the SREP_Config.cfg file look like
 
 
-    Op Loaded H2OFormBrowserDxe
+    Op Loaded
+    H2OFormBrowserDxe
     Op Patch
     Pattern
     E33545B0043046499EB714942898305300000000
@@ -180,7 +183,8 @@ So putting all toghether the SREP_Config.cfg file look like
 
 Now we have patched the H2OFormBrowserDxe, but the Bios UI will be not loaded as we booted from a USB, but we can force it to load with
 
-    Op LoadFromFV SetupUtilityApp
+    Op LoadFromFV
+    SetupUtilityApp
     Op Exec
 
 
