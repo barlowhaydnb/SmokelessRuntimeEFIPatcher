@@ -2,7 +2,7 @@
 #include "Utility.h"
 EFI_STATUS LoadFS(EFI_HANDLE ImageHandle, CHAR8 *FileName, EFI_LOADED_IMAGE_PROTOCOL **ImageInfo, EFI_HANDLE *AppImageHandle)
 {
-    UINTN ExitDataSize;
+    //UINTN ExitDataSize;
     UINTN NumHandles;
     UINTN Index;
     EFI_HANDLE *SFS_Handles;
@@ -108,7 +108,7 @@ EFI_STATUS FindLoadedImageFromName(EFI_HANDLE ImageHandle, CHAR8 *FileName, EFI_
 
     for (UINTN i = 0; i < HandleSize; i++)
     {
-        Status = gBS->HandleProtocol(Handles[i], &gEfiLoadedImageProtocolGuid, ImageInfo);
+        Status = gBS->HandleProtocol(Handles[i], &gEfiLoadedImageProtocolGuid, (VOID **)ImageInfo);
         if (Status == EFI_SUCCESS)
         {
             CHAR16 *String = FindLoadedImageFileName(*ImageInfo);

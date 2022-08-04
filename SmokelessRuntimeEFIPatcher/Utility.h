@@ -32,6 +32,6 @@ EFI_STATUS LoadandRunImage(EFI_HANDLE ImageHandle,
                            CHAR16 *FileName,
                            EFI_HANDLE *AppImageHandle);
 
-UINT8 * FindBaseAddressFromName(CHAR16 **Name);
+UINT8 *FindBaseAddressFromName(const CHAR16 *Name);
 
 EFI_STATUS LocateAndLoadFvFromName(CHAR16 *Name, EFI_SECTION_TYPE Section_Type,UINT8 **Buffer,UINTN *BufferSize);

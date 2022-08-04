@@ -53,7 +53,7 @@ FindLoadedImageFileName(
     return Buffer;
 }
 
-UINT8 *FindBaseAddressFromName(CHAR16 **Name)
+UINT8 *FindBaseAddressFromName(const CHAR16 *Name)
 {
     EFI_STATUS Status;
     UINTN HandleSize = 0;
@@ -70,7 +70,7 @@ UINT8 *FindBaseAddressFromName(CHAR16 **Name)
     EFI_LOADED_IMAGE_PROTOCOL *LoadedImageProtocol;
     for (UINTN i = 0; i < HandleSize; i++)
     {
-        Status = gBS->HandleProtocol(Handles[i], &gEfiLoadedImageProtocolGuid, &LoadedImageProtocol);
+        Status = gBS->HandleProtocol(Handles[i], &gEfiLoadedImageProtocolGuid, (VOID **)&LoadedImageProtocol);
         if (Status == EFI_SUCCESS)
         {
             CHAR16 *String = FindLoadedImageFileName(LoadedImageProtocol);
@@ -152,13 +152,13 @@ LocateAndLoadFvFromName(CHAR16 *Name, EFI_SECTION_TYPE Section_Type, UINT8 **Buf
     EFI_STATUS Status;
     EFI_HANDLE *HandleBuffer;
     UINTN NumberOfHandles;
-    UINT32 FvStatus;
-    EFI_FV_FILE_ATTRIBUTES Attributes;
-    UINTN Size;
+    //UINT32 FvStatus;
+    //EFI_FV_FILE_ATTRIBUTES Attributes;
+   // UINTN Size;
     UINTN Index;
     EFI_FIRMWARE_VOLUME2_PROTOCOL *FvInstance;
 
-    FvStatus = 0;
+   // FvStatus = 0;
 
     //
     // Locate protocol.
@@ -219,7 +219,7 @@ LocateAndLoadFvFromName(CHAR16 *Name, EFI_SECTION_TYPE Section_Type, UINT8 **Buf
 
                 Print(L"Guid :%g, FileSize %d, Name : %s, Type %d \n\r", NameGuid, FileSize, String, FileType);
 
-                Status = FvInstance->ReadSection(FvInstance, &NameGuid, Section_Type, 0, Buffer, BufferSize, &AuthenticationStatus);
+                Status = FvInstance->ReadSection(FvInstance, &NameGuid, Section_Type, 0,(VOID **) Buffer, BufferSize, &AuthenticationStatus);
                 Print(L"Result Cause %r\n\r", Status);
                 FreePool(String);
                 return EFI_SUCCESS;

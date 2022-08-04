@@ -301,8 +301,8 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
                 Prev_OP->ARG3 = 0xFFFFFFFF;
                 Prev_OP->ARG6 = AsciiStrLen(&ConfigData[curr_pos]) / 2;
                 Print(L"Found %d Bytes\n\r", Prev_OP->ARG6);
-                Prev_OP->ARG7 = AllocateZeroPool(Prev_OP->ARG6);
-                AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG6 * 2, Prev_OP->ARG7, Prev_OP->ARG6);
+                Prev_OP->ARG7 = (UINT64)AllocateZeroPool(Prev_OP->ARG6);
+                AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG6 * 2, (UINT8 *)Prev_OP->ARG7, Prev_OP->ARG6);
             }
             continue;
         }
@@ -313,10 +313,10 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
             Prev_OP->ARG4 = AsciiStrLen(&ConfigData[curr_pos]) / 2;
             Print(L"Found %d Bytes\n\r", Prev_OP->ARG4);
             Prev_OP->ARG5_Dyn_Alloc = TRUE;
-            Prev_OP->ARG5 = AllocateZeroPool(Prev_OP->ARG4);
-            AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG4 * 2, Prev_OP->ARG5, Prev_OP->ARG4);
+            Prev_OP->ARG5 = (UINT64)AllocateZeroPool(Prev_OP->ARG4);
+            AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG4 * 2, (UINT8 *)Prev_OP->ARG5, Prev_OP->ARG4);
             Print(L"Patch Byte\n\r");
-            PrintDump(Prev_OP->ARG4, Prev_OP->ARG5);
+            PrintDump(Prev_OP->ARG4,  (UINT8 *)Prev_OP->ARG5);
             continue;
         }
     }
@@ -350,7 +350,7 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
             break;
         case PATCH:
             Print(L"Patching Image Size %x: \n\r", ImageInfo->ImageSize);
-            PrintDump(next->ARG6, next->ARG7);
+            PrintDump(next->ARG6, (UINT8 *)next->ARG7);
 
             PrintDump(next->ARG6, ((UINT8 *)ImageInfo->ImageBase) + 0x1A383);
             // PrintDump(0x200, (UINT8 *)(LoadedImage->ImageBase));
@@ -360,7 +360,7 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
                 Print(L"Finding Offset\n\r");
                 for (UINTN i = 0; i < ImageInfo->ImageSize - next->ARG6; i += 1)
                 {
-                    if (CompareMem(((UINT8 *)ImageInfo->ImageBase) + i, next->ARG7, next->ARG6) == 0)
+                    if (CompareMem(((UINT8 *)ImageInfo->ImageBase) + i, (UINT8 *)next->ARG7, next->ARG6) == 0)
                     {
                         next->ARG3 = i;
                         Print(L"Found at %x\n\r", i);
@@ -384,7 +384,7 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
             BaseOffset = next->ARG3;
             Print(L"Offset %x\n\r", next->ARG3);
             // PrintDump(next->ARG4+10,ImageInfo->ImageBase + next->ARG3 -5 );
-            CopyMem(ImageInfo->ImageBase + next->ARG3, next->ARG5, next->ARG4);
+            CopyMem(ImageInfo->ImageBase + next->ARG3, (UINT8 *)next->ARG5, next->ARG4);
             Print(L"Patched\n\r");
             // PrintDump(next->ARG4+10,ImageInfo->ImageBase + next->ARG3 -5 );
             break;
