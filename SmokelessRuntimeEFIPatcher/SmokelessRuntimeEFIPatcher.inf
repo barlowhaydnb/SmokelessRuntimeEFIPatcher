@@ -1,0 +1,47 @@
+[Defines]
+	INF_VERSION                    = 0x00010006
+	BASE_NAME                      = SmokelessRuntimeEFIPatcher
+	FILE_GUID                      =  24ba59e6-8d34-4fe4-83a0-da8e478ecbfe
+	MODULE_TYPE                    = UEFI_APPLICATION
+	VERSION_STRING                 = 0.1
+	ENTRY_POINT                    = SREPEntry
+
+
+  UEFI_HII_RESOURCE_SECTION      = TRUE
+[Sources]
+	SmokelessRuntimeEFIPatcher.c
+  Utility.c
+  OpCode.c
+[Packages]
+	MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  CryptoPkg/CryptoPkg.dec
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  BaseLib
+  HiiLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  DebugLib
+  BaseCryptLib
+  PrintLib
+  UefiLib
+  DevicePathLib
+
+[Protocols]
+  gEfiLoadedImageProtocolGuid            ## CONSUMES
+  gEfiSimpleFileSystemProtocolGuid              ## CONSUMES
+  gEfiLoadFileProtocolGuid                      ## CONSUMES
+  gEfiHiiConfigAccessProtocolGuid               ## CONSUMES
+  gEfiSerialIoProtocolGuid                      ## CONSUMES
+  gEfiDevicePathToTextProtocolGuid              ## CONSUMES
+  gEfiFirmwareVolume2ProtocolGuid
+  gEdkiiFormBrowserEx2ProtocolGuid     
+  gEdkiiFormBrowserExProtocolGuid
+  gEfiHiiPopupProtocolGuid
+  gEdkiiFormDisplayEngineProtocolGuid
+[Guids]
+  gEfiAcpiTableGuid
+  gEfiAcpi20TableGuid
+  gEfiDxeServicesTableGuid
