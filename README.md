@@ -23,7 +23,8 @@ For one one donation, you can subribe for a month to Patreon then after the biil
 * Download the Latest zip, from the [Release Page](https://github.com/SmokelessCPUv2/SmokelessRuntimeEFIPatcher/releases/latest)
 
 * extract in a USB, such that exist a Folder Called EFI in the USB Root,
-* Create a SREP_Config.cfg and place in the root of the USB, boot from the USB
+* Create a SREP_Config.cfg and place in the root of the USB
+* boot from the USB
 * ??
 * Profit
 
