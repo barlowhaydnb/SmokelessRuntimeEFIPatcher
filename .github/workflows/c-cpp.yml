@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/checkout@v3
       with:
-        repository: https://github.com/tianocore/edk2
+        repository: tianocore/edk2
         submodules : true
     - name: Move to EDK2
       run: mv SmokelessRuntimeEFIPatcher edk2
