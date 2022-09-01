@@ -1,11 +1,12 @@
 # SmokelessRuntimeEFIPatcher
 # These Are tool From "The Vault", that I decided to upload, so expect not fully polished product, or very slow Fixes if any
 
-#This is not a request form
+# This is not a request form
 Plese don't open issue not strictly related with the tool.
 Request for bios unlock are not related to the tool,
 for that you can try to ask on the discord server( a bit of effort from you side is required)
 
+Even if the tool is free, my time is not, so don't expect that I make a patch from scratch for your bios, without you putting some effort in it.
 
 # Discaimer
 **Use this at your own risk,I won’t be responsible for any damage.**
