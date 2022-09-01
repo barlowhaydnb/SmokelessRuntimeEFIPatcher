@@ -398,7 +398,7 @@ break;
             break;
         }
     }
-cleanup:
+//cleanup:
     for (next = Start; next != NULL; next = next->next)
     {
         if (next->Name_Dyn_Alloc)
