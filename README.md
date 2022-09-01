@@ -1,6 +1,12 @@
 # SmokelessRuntimeEFIPatcher
 # These Are tool From "The Vault", that I decided to upload, so expect not fully polished product, or very slow Fixes if any
 
+#This is not a request form
+Plese don't open issue not strictly related with the tool.
+Request for bios unlock are not related to the tool,
+for that you can try to ask on the discord server( a bit of effort from you side is required)
+
+
 # Discaimer
 **Use this at your own risk,I won’t be responsible for any damage.**
 
