@@ -370,7 +370,8 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
                 if (next->ARG3 == 0xFFFFFFFF)
                 {
                     Print(L"No Patter Found\n\r");
-                    goto cleanup;
+                    //goto cleanup;
+break;
                 }
             }
             if (next->PatterType == REL_POS_OFFSET)
