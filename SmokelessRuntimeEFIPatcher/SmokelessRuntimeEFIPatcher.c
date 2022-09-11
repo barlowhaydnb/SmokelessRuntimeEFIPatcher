@@ -20,11 +20,12 @@
 #include <Library/MemoryAllocationLib.h>
 #include "Utility.h"
 #include "Opcode.h"
-#define SREP_VERSION L"0.1"
+#define SREP_VERSION L"0.1.4"
 
 EFI_BOOT_SERVICES *_gBS = NULL;
 EFI_RUNTIME_SERVICES *_gRS = NULL;
-
+EFI_FILE *LogFile;
+char Log[512];
 enum
 {
     OFFSET = 1,
@@ -64,6 +65,14 @@ struct OP_DATA
     struct OP_DATA *prev;
 };
 
+
+void LogToFile( EFI_FILE *LogFile, char *String)
+{
+        UINTN Size = AsciiStrLen(String);
+        LogFile->Write(LogFile,&Size,String);
+}
+
+
 VOID Add_OP_CODE(struct OP_DATA *Start, struct OP_DATA *opCode)
 {
     struct OP_DATA *next = Start;
@@ -80,28 +89,37 @@ VOID PrintOPChain(struct OP_DATA *Start)
     struct OP_DATA *next = Start;
     while (next != NULL)
     {
-        Print(L"OPCODE : ");
+        AsciiSPrint(Log,512,"%s","OPCODE : ");
+        LogToFile(LogFile,Log);
         switch (next->ID)
         {
         case NO_OP:
-            Print(L"NOP\n\r");
+            AsciiSPrint(Log,512,"%s","NOP\n\r");
+            LogToFile(LogFile,Log);
             break;
         case LOADED:
-            Print(L"LOADED\n\r");
+            AsciiSPrint(Log,512,"%s","LOADED\n\r");
+            LogToFile(LogFile,Log);
             break;
         case LOAD_FS:
-            Print(L"LOAD_FS\n\r");
-            Print(L"\t FileName %a\n\r", next->Name);
+            AsciiSPrint(Log,512,"%s","LOAD_FS\n\r");
+            LogToFile(LogFile,Log);
+            AsciiSPrint(Log,512,"%s","\t FileName %a\n\r", next->Name);
+            LogToFile(LogFile,Log);
             break;
         case LOAD_FV:
-            Print(L"LOAD_FV\n\r");
-            Print(L"\t FileName %a\n\r", next->Name);
+            AsciiSPrint(Log,512,"%s","LOAD_FV\n\r");
+            LogToFile(LogFile,Log);
+            AsciiSPrint(Log,512,"%s","\t FileName %a\n\r", next->Name);
+            LogToFile(LogFile,Log);
             break;
         case PATCH:
-            Print(L"PATCH\n\r");
+            AsciiSPrint(Log,512,"%s","PATCH\n\r");
+            LogToFile(LogFile,Log);
             break;
         case EXEC:
-            Print(L"EXEC\n\r");
+            AsciiSPrint(Log,512,"%s","EXEC\n\r");
+            LogToFile(LogFile,Log);
             break;
 
         default:
@@ -117,12 +135,17 @@ VOID PrintDump(UINT16 Size, UINT8 *DUMP)
     {
         if (i % 0x10 == 0)
         {
-            Print(L"\n\t");
+            AsciiSPrint(Log,512,"%s","\n\t");
+            LogToFile(LogFile,Log);
         }
-        Print(L"%02x ", DUMP[i]);
+        AsciiSPrint(Log,512,"%02x ", DUMP[i]);
+        LogToFile(LogFile,Log);
     }
-    Print(L"\n\t");
+    AsciiSPrint(Log,512,"%s","\n\t");
+    LogToFile(LogFile,Log);
 }
+
+
 
 EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
 {
@@ -133,22 +156,33 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     EFI_FILE *Root;
     EFI_FILE *ConfigFile;
     CHAR16 FileName[255];
-
-    Print(L"Welcome to SREP (Smokeless Runtime EFI Patcher) %s\n\r", SREP_VERSION);
-
+    CHAR16 LogFileName[] = L"SREP.log";
+    Print(L"Welcome to SREP (Smokeless Runtime EFI Patcher) %s\n\r", SREP_VERSION);    
+    gBS->SetWatchdogTimer(0, 0, 0, 0);
     HandleProtocol = SystemTable->BootServices->HandleProtocol;
     HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (void **)&LoadedImage);
     HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
     FileSystem->OpenVolume(FileSystem, &Root);
 
+    Status = Root->Open(Root, &LogFile, LogFileName, EFI_FILE_MODE_WRITE, 0);
+    if (Status != EFI_SUCCESS)
+    {
+        Print(L"Failed on Opening Log File : %r\n\r", Status);
+        return Status;
+    }
+    AsciiSPrint(Log,512,"Welcome to SREP (Smokeless Runtime EFI Patcher) %s\n\r", SREP_VERSION);
+    LogToFile(LogFile,Log);
     UnicodeSPrint(FileName, sizeof(FileName), L"%a", "SREP_Config.cfg");
     Status = Root->Open(Root, &ConfigFile, FileName, EFI_FILE_MODE_READ, 0);
     if (Status != EFI_SUCCESS)
     {
-        Print(L"Failed on Opening SREP_Config : %r\n\r", Status);
+        AsciiSPrint(Log,512,"Failed on Opening SREP_Config : %r\n\r", Status);
+        LogToFile(LogFile,Log);
         return Status;
     }
-    Print(L"Opened SREP_Config\n\r");
+
+   AsciiSPrint(Log,512,"%s","Opened SREP_Config\n\r");
+   LogToFile(LogFile,Log);
     EFI_GUID gFileInfo = EFI_FILE_INFO_ID;
     EFI_FILE_INFO *FileInfo = NULL;
     UINTN FileInfoSize = 0;
@@ -159,24 +193,29 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
         Status = ConfigFile->GetInfo(ConfigFile, &gFileInfo, &FileInfoSize, FileInfo);
         if (Status != EFI_SUCCESS)
         {
-            Print(L"Failed Getting SREP_Config Info: %r\n\r", Status);
+            AsciiSPrint(Log,512,"Failed Getting SREP_Config Info: %r\n\r", Status);
+            LogToFile(LogFile,Log);
             return Status;
         }
     }
     UINTN ConfigDataSize = FileInfo->FileSize + 1; // Add Last null Terminalto
-    Print(L"Config Size: 0x%x\n\r", ConfigDataSize);
+    AsciiSPrint(Log,512,"Config Size: 0x%x\n\r", ConfigDataSize);
+    LogToFile(LogFile,Log);
     CHAR8 *ConfigData = AllocateZeroPool(ConfigDataSize);
     FreePool(FileInfo);
 
     Status = ConfigFile->Read(ConfigFile, &ConfigDataSize, ConfigData);
     if (Status != EFI_SUCCESS)
     {
-        Print(L"Failed on Reading SREP_Config : %r\n\r", Status);
+        AsciiSPrint(Log,512,"Failed on Reading SREP_Config : %r\n\r", Status);
+         LogToFile(LogFile,Log);
         return Status;
     }
-    Print(L"Parsing Config\n\r");
+    AsciiSPrint(Log,512,"%s","Parsing Config\n\r");
+     LogToFile(LogFile,Log);
     ConfigFile->Close(ConfigFile);
-    Print(L"Stripping NewLine, Carriage and tab Return\n\r");
+    AsciiSPrint(Log,512,"%s","Stripping NewLine, Carriage and tab Return\n\r");
+     LogToFile(LogFile,Log);
     for (UINTN i = 0; i < ConfigDataSize; i++)
     {
         if (ConfigData[i] == '\n' || ConfigData[i] == '\r' || ConfigData[i] == '\t')
@@ -203,17 +242,21 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
             continue;
         }
         NullByteSkipped = FALSE;
-        Print(L"Current Parsing %a\n\r", &ConfigData[curr_pos]);
+        AsciiSPrint(Log,512,"Current Parsing %a\n\r", &ConfigData[curr_pos]);
+         LogToFile(LogFile,Log);
         if (AsciiStrStr(&ConfigData[curr_pos], "End"))
         {
-            Print(L"End OP Detected\n\r");
+            AsciiSPrint(Log,512,"%s","End OP Detected\n\r");
+             LogToFile(LogFile,Log);
             continue;
         }
         if (AsciiStrStr(&ConfigData[curr_pos], "Op"))
         {
-            Print(L"OP Detected\n\r");
+            AsciiSPrint(Log,512,"%s","OP Detected\n\r");
+             LogToFile(LogFile,Log);
             curr_pos += 3;
-            Print(L"Commnand %a \n\r", &ConfigData[curr_pos]);
+            AsciiSPrint(Log,512,"Commnand %a \n\r", &ConfigData[curr_pos]);
+             LogToFile(LogFile,Log);
             if (AsciiStrStr(&ConfigData[curr_pos], "LoadFromFS"))
             {
                 Prev_OP = AllocateZeroPool(sizeof(struct OP_DATA));
@@ -250,12 +293,14 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
                 Add_OP_CODE(Start, Prev_OP);
                 continue;
             }
-            Print(L"Commnand %a Invalid \n\r", &ConfigData[curr_pos]);
+            AsciiSPrint(Log,512,"Commnand %a Invalid \n\r", &ConfigData[curr_pos]);
+             LogToFile(LogFile,Log);
             return EFI_INVALID_PARAMETER;
         }
         if ((Prev_OP->ID == LOAD_FS || Prev_OP->ID == LOAD_FV || Prev_OP->ID == LOADED) && Prev_OP->Name == 0)
         {
-            Print(L"Found File %a \n\r", &ConfigData[curr_pos]);
+            AsciiSPrint(Log,512,"Found File %a \n\r", &ConfigData[curr_pos]);
+             LogToFile(LogFile,Log);
             UINTN FileNameLength = AsciiStrLen(&ConfigData[curr_pos]) + 1;
             CHAR8 *FileName = AllocateZeroPool(FileNameLength);
             CopyMem(FileName, &ConfigData[curr_pos], FileNameLength);
@@ -267,22 +312,26 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
         {
             if (AsciiStrStr(&ConfigData[curr_pos], "Offset"))
             {
-                Print(L"Found Offset\n\r");
+                AsciiSPrint(Log,512,"%s","Found Offset\n\r");
+                 LogToFile(LogFile,Log);
                 Prev_OP->PatterType = OFFSET;
             }
             if (AsciiStrStr(&ConfigData[curr_pos], "Pattern"))
             {
-                Print(L"Found Pattern\n\r");
+                AsciiSPrint(Log,512,"%s","Found Pattern\n\r");
+                 LogToFile(LogFile,Log);
                 Prev_OP->PatterType = PATTERN;
             }
             if (AsciiStrStr(&ConfigData[curr_pos], "RelNegOffset"))
             {
-                Print(L"Found Offset\n\r");
+                AsciiSPrint(Log,512,"%s","Found Offset\n\r");
+                 LogToFile(LogFile,Log);
                 Prev_OP->PatterType = REL_NEG_OFFSET;
             }
             if (AsciiStrStr(&ConfigData[curr_pos], "RelPosOffset"))
             {
-                Print(L"Found Offset\n\r");
+                AsciiSPrint(Log,512,"%s","Found Offset\n\r");
+                 LogToFile(LogFile,Log);
                 Prev_OP->PatterType = REL_POS_OFFSET;
             }
             continue;
@@ -293,14 +342,16 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
         {
             if (Prev_OP->PatterType == OFFSET || Prev_OP->PatterType == REL_NEG_OFFSET || Prev_OP->PatterType == REL_POS_OFFSET)
             {
-                Print(L"Decode Offset\n\r");
+                AsciiSPrint(Log,512,"%s","Decode Offset\n\r");
+                 LogToFile(LogFile,Log);
                 Prev_OP->ARG3 = AsciiStrHexToUint64(&ConfigData[curr_pos]);
             }
             if (Prev_OP->PatterType == PATTERN)
             {
                 Prev_OP->ARG3 = 0xFFFFFFFF;
                 Prev_OP->ARG6 = AsciiStrLen(&ConfigData[curr_pos]) / 2;
-                Print(L"Found %d Bytes\n\r", Prev_OP->ARG6);
+                AsciiSPrint(Log,512,"Found %d Bytes\n\r", Prev_OP->ARG6);
+                 LogToFile(LogFile,Log);
                 Prev_OP->ARG7 = (UINT64)AllocateZeroPool(Prev_OP->ARG6);
                 AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG6 * 2, (UINT8 *)Prev_OP->ARG7, Prev_OP->ARG6);
             }
@@ -311,11 +362,13 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
         {
 
             Prev_OP->ARG4 = AsciiStrLen(&ConfigData[curr_pos]) / 2;
-            Print(L"Found %d Bytes\n\r", Prev_OP->ARG4);
+            AsciiSPrint(Log,512,"Found %d Bytes\n\r", Prev_OP->ARG4);
+             LogToFile(LogFile,Log);
             Prev_OP->ARG5_Dyn_Alloc = TRUE;
             Prev_OP->ARG5 = (UINT64)AllocateZeroPool(Prev_OP->ARG4);
             AsciiStrHexToBytes(&ConfigData[curr_pos], Prev_OP->ARG4 * 2, (UINT8 *)Prev_OP->ARG5, Prev_OP->ARG4);
-            Print(L"Patch Byte\n\r");
+            AsciiSPrint(Log,512,"%s","Patch Byte\n\r");
+             LogToFile(LogFile,Log);
             PrintDump(Prev_OP->ARG4,  (UINT8 *)Prev_OP->ARG5);
             continue;
         }
@@ -332,24 +385,35 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
         switch (next->ID)
         {
         case NO_OP:
-            // Print(L"NOP\n\r");
+            // AsciiSPrint(Log,512,"NOP\n\r");
             break;
         case LOADED:
-            Print(L"LOADED\n\r");
+            AsciiSPrint(Log,512,"%s","Executing Loaded OP\n\r");
+             LogToFile(LogFile,Log);
             Status = FindLoadedImageFromName(ImageHandle, next->Name, &ImageInfo);
-            Print(L"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
+            AsciiSPrint(Log,512,"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
+             LogToFile(LogFile,Log);
             break;
         case LOAD_FS:
+            AsciiSPrint(Log,512,"%s","Executing Load from FS\n\r");    
+            LogToFile(LogFile,Log);
             Status = LoadFS(ImageHandle, next->Name, &ImageInfo, &AppImageHandle);
-            Print(L"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
-            // Print(L"\t FileName %a\n\r", next->ARG2);
+            AsciiSPrint(Log,512,"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
+             LogToFile(LogFile,Log);
+            // AsciiSPrint(Log,512,"\t FileName %a\n\r", next->ARG2);
             break;
         case LOAD_FV:
+            AsciiSPrint(Log,512,"%s","Executing Load from FV\n\r");    
+            LogToFile(LogFile,Log);
             Status = LoadFV(ImageHandle, next->Name, &ImageInfo, &AppImageHandle, EFI_SECTION_PE32);
-            Print(L"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
+            AsciiSPrint(Log,512,"Loaded Image %r -> %x\n\r", Status, ImageInfo->ImageBase);
+            LogToFile(LogFile,Log);
             break;
         case PATCH:
-            Print(L"Patching Image Size %x: \n\r", ImageInfo->ImageSize);
+            AsciiSPrint(Log,512,"%s","Executing Patch\n\r");    
+            LogToFile(LogFile,Log);
+            AsciiSPrint(Log,512,"Patching Image Size %x: \n\r", ImageInfo->ImageSize);
+            LogToFile(LogFile,Log);
             PrintDump(next->ARG6, (UINT8 *)next->ARG7);
 
             PrintDump(next->ARG6, ((UINT8 *)ImageInfo->ImageBase) + 0x1A383);
@@ -357,21 +421,24 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
             if (next->PatterType == PATTERN)
             {
 
-                Print(L"Finding Offset\n\r");
+                AsciiSPrint(Log,512,"%s","Finding Offset\n\r");
+                LogToFile(LogFile,Log);
                 for (UINTN i = 0; i < ImageInfo->ImageSize - next->ARG6; i += 1)
                 {
                     if (CompareMem(((UINT8 *)ImageInfo->ImageBase) + i, (UINT8 *)next->ARG7, next->ARG6) == 0)
                     {
                         next->ARG3 = i;
-                        Print(L"Found at %x\n\r", i);
+                        AsciiSPrint(Log,512,"Found at %x\n\r", i);
+                        LogToFile(LogFile,Log);
                         break;
                     }
                 }
                 if (next->ARG3 == 0xFFFFFFFF)
                 {
-                    Print(L"No Patter Found\n\r");
+                    AsciiSPrint(Log,512,"%s","No Patter Found\n\r");
+                    LogToFile(LogFile,Log);
                     //goto cleanup;
-break;
+                break;
                 }
             }
             if (next->PatterType == REL_POS_OFFSET)
@@ -383,15 +450,18 @@ break;
                 next->ARG3 = BaseOffset - next->ARG3;
             }
             BaseOffset = next->ARG3;
-            Print(L"Offset %x\n\r", next->ARG3);
+            AsciiSPrint(Log,512,"Offset %x\n\r", next->ARG3);
+            LogToFile(LogFile,Log);
             // PrintDump(next->ARG4+10,ImageInfo->ImageBase + next->ARG3 -5 );
             CopyMem(ImageInfo->ImageBase + next->ARG3, (UINT8 *)next->ARG5, next->ARG4);
-            Print(L"Patched\n\r");
+            AsciiSPrint(Log,512,"%s","Patched\n\r");
+            LogToFile(LogFile,Log);
             // PrintDump(next->ARG4+10,ImageInfo->ImageBase + next->ARG3 -5 );
             break;
         case EXEC:
             Exec(&AppImageHandle);
-            Print(L"EXEC %r\n\r", Status);
+            AsciiSPrint(Log,512,"%s","EXEC %r\n\r", Status);
+            LogToFile(LogFile,Log);
             break;
 
         default:
