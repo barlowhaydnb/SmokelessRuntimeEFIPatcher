@@ -20,7 +20,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include "Utility.h"
 #include "Opcode.h"
-#define SREP_VERSION L"0.1.4"
+#define SREP_VERSION L"0.1.4a"
 
 EFI_BOOT_SERVICES *_gBS = NULL;
 EFI_RUNTIME_SERVICES *_gRS = NULL;
@@ -164,7 +164,7 @@ EFI_STATUS EFIAPI SREPEntry(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *Syst
     HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
     FileSystem->OpenVolume(FileSystem, &Root);
 
-    Status = Root->Open(Root, &LogFile, LogFileName, EFI_FILE_MODE_WRITE, 0);
+    Status = Root->Open(Root, &LogFile, LogFileName, EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
     if (Status != EFI_SUCCESS)
     {
         Print(L"Failed on Opening Log File : %r\n\r", Status);
