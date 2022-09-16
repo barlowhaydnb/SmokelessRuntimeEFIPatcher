@@ -16,6 +16,9 @@ Also the code quality and the parsing engine are not that great, but were the be
 ## Question and Techinal discussion
 You can try to reach me over https://discord.gg/Mj2Zc3jDFW
 
+## Already backed config
+https://github.com/SmokelessCPUv2/SREP-Community-Patches
+
 # What is this
 This is a simple tool to patch and Inject/Patch EFI modules at runtime, I developed this as I wasn't confortable with SPI flashing, as is not boring and require opening the laptop for every small change, as with AMD you can't flash from the OS a new BIOS, if is not signed...
 
