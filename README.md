@@ -14,7 +14,7 @@ Even if the tool is free, my time is not, so don't expect that I make a patch fr
 Also the code quality and the parsing engine are not that great, but were the best I could come to.
 
 
-## Already backed config
+## Already baked config
 https://github.com/SmokelessCPUv2/SREP-Community-Patches
 
 # What is this
