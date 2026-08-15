@@ -1,3 +1,5 @@
+
+
 # SmokelessRuntimeEFIPatcher
 # These Are tool From "The Vault", that I decided to upload, so expect not fully polished product, or very slow Fixes if any
 
@@ -61,7 +63,7 @@ The Config file can containg muliple batch of operation, the syntax is,
     End
 
 
-# Implemented Operiation
+# Implemented Operatioin
 
 ## LoadFromFS
 Load a EFI File in memory from a EFI partition, set as target
@@ -72,7 +74,7 @@ Load a EFI File in memory from a EFI partition, set as target
 ## LoadFromFV
 Load a EFI File in memory from the FV(Firmware Volume)/The BIOS image, set as target
 ### Arguments
-    * SectionName : The Section to load
+    * Name : The module name to load
 
 ## Loaded
 Target an already loaded Module
